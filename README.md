@@ -1,0 +1,2 @@
+# TransactionsSummary
+Stori technical challenge.
