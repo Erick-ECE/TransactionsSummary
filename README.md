@@ -1,4 +1,4 @@
-# TransactionsSummary
+# transactions-summary
 Stori technical challenge.
 
 ### Purpose
