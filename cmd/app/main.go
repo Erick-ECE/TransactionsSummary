@@ -15,8 +15,8 @@ import (
 
 func main() {
 	// Load database configuration (you might want to use environment variables or a config file)
-	dbUser := "erick"
-	dbPassword := "3r1ck15"
+	dbUser := "####"
+	dbPassword := "####"
 	dbName := "transactions_summary"
 	dbHost := "localhost" // Change this if needed
 

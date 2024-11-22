@@ -3,11 +3,12 @@ package database
 import (
 	"database/sql"
 	"fmt"
-
-	_ "github.com/go-sql-driver/mysql" // Required for MySQL database connection
+	"time"
 
 	"transactions-summary/internal/entities"
-	"transactions-summary/internal/interfaces" // Check if this is being used correctly
+	"transactions-summary/internal/interfaces"
+
+	_ "github.com/go-sql-driver/mysql" // MySQL driver for database connection
 )
 
 // MySQLTransactionRepo implements the TransactionRepository interface for MySQL.
@@ -33,4 +34,27 @@ func (repo *MySQLTransactionRepo) SaveTransaction(transaction *entities.Transact
 		return fmt.Errorf("could not save transaction: %v", err)
 	}
 	return nil
+}
+
+// GetAllTransactions retrieves all transactions from the database.
+func (repo *MySQLTransactionRepo) GetAllTransactions() ([]entities.Transaction, error) {
+	rows, err := repo.DB.Query("SELECT id, amount, date, type FROM transactions")
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve transactions: %v", err)
+	}
+	defer rows.Close()
+
+	var transactions []entities.Transaction
+	for rows.Next() {
+		var txn entities.Transaction
+		var date time.Time
+		err := rows.Scan(&txn.ID, &txn.Amount, &date, &txn.Type)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan transaction row: %v", err)
+		}
+		txn.Date = date
+		transactions = append(transactions, txn)
+	}
+
+	return transactions, nil
 }
