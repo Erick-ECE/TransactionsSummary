@@ -6,19 +6,30 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql" // MySQL driver for database connection
-
 	"transactions-summary/internal/infrastructure/database"
+	"transactions-summary/internal/infrastructure/email"
 	"transactions-summary/internal/infrastructure/file"
 	"transactions-summary/internal/usecases"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	// Load database configuration (you might want to use environment variables or a config file)
-	dbUser := "####"
-	dbPassword := "####"
+	// Load database configuration (adjust as needed)
+	dbUser := "erick"
+	dbPassword := "3r1ck15"
 	dbName := "transactions_summary"
-	dbHost := "localhost" // Change this if needed
+	dbHost := "localhost"
+
+	// Email configuration (adjust with your SMTP details)
+	smtpHost := "smtp.gmail.com"
+	smtpPort := 465
+	emailUser := "e.snk97@gmail.com"
+	emailPassword := "xyzr soyt secq atfm"
+	fromEmail := "e.snk97@gmail.com"
+
+	// Email recipient (could be passed as a parameter)
+	recipientEmail := "ericken15@ciencias.unam.mx"
 
 	// Build the DSN (Data Source Name)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPassword, dbHost, dbName)
@@ -51,5 +62,17 @@ func main() {
 		log.Fatalf("could not process transactions: %v", err)
 	}
 
-	log.Println("Transactions processed successfully!")
+	// Initialize the GenerateSummary use case
+	generateSummary := usecases.NewGenerateSummary(transactionRepo)
+
+	// Initialize the Gomail email service
+	emailService := email.NewGomailService(smtpHost, smtpPort, emailUser, emailPassword, fromEmail)
+
+	// Initialize and execute the SendSummaryEmail use case
+	sendSummaryEmail := usecases.NewSendSummaryEmail(generateSummary, emailService)
+	if err := sendSummaryEmail.Execute(recipientEmail); err != nil {
+		log.Fatalf("could not send summary email: %v", err)
+	}
+
+	log.Println("Transactions processed and summary email sent successfully!")
 }

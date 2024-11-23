@@ -46,14 +46,20 @@ func (repo *MySQLTransactionRepo) GetAllTransactions() ([]entities.Transaction, 
 
 	var transactions []entities.Transaction
 	for rows.Next() {
-		var txn entities.Transaction
-		var date time.Time
-		err := rows.Scan(&txn.ID, &txn.Amount, &date, &txn.Type)
+		var transaction entities.Transaction
+		var dateString string // Scan the date as a string instead of time.Time
+		err := rows.Scan(&transaction.ID, &transaction.Amount, &dateString, &transaction.Type)
 		if err != nil {
 			return nil, fmt.Errorf("could not scan transaction row: %v", err)
 		}
-		txn.Date = date
-		transactions = append(transactions, txn)
+
+		// Convert the dateString to time.Time
+		transaction.Date, err = time.Parse("2006-01-02", dateString)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse date: %v", err)
+		}
+
+		transactions = append(transactions, transaction)
 	}
 
 	return transactions, nil
