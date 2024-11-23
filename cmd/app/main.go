@@ -24,9 +24,9 @@ func main() {
 	// Email configuration (adjust with your SMTP details)
 	smtpHost := "smtp.gmail.com"
 	smtpPort := 465
-	emailUser := "e.snk97@gmail.com"
-	emailPassword := "xyzr soyt secq atfm"
-	fromEmail := "e.snk97@gmail.com"
+	emailUser := "#######"
+	emailPassword := "##########"
+	fromEmail := "#########"
 
 	// Email recipient (could be passed as a parameter)
 	recipientEmail := "ericken15@ciencias.unam.mx"
