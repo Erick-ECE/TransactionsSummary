@@ -12,6 +12,8 @@ type MonthlySummary struct {
 
 // SummaryResult holds the overall summary data.
 type SummaryResult struct {
-	TotalBalance     float64          // Overall balance considering all transactions
+	TotalCredit      float64
+	TotalDebit       float64
 	MonthlySummaries []MonthlySummary // Summary grouped by month
+
 }

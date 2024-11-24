@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +14,10 @@ import (
 	"transactions-summary/internal/infrastructure/file"
 	"transactions-summary/internal/usecases"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	_ "github.com/go-sql-driver/mysql" // MySQL driver for database connection
 	"github.com/joho/godotenv"         // Package to load .env file
 )
@@ -41,9 +47,6 @@ func main() {
 		log.Fatalf("Invalid SMTP port: %v", err)
 	}
 
-	// Email recipient (hardcoded or from an environment variable)
-	recipientEmail := "ericken15@ciencias.unam.mx"
-
 	// Build the DSN (Data Source Name) for MySQL connection
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPassword, dbHost, dbName)
 
@@ -63,19 +66,40 @@ func main() {
 	// Initialize the ProcessTransactions use case
 	processTransactions := usecases.NewProcessTransactions(transactionRepo, csvReader)
 
-	// Get the CSV file path from the command line arguments
-	if len(os.Args) < 2 {
-		log.Fatal("Please provide the path to the CSV file")
+	// Get CSV file from S#
+	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
+	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	region := os.Getenv("AWS_REGION")
+	bucketName := os.Getenv("S3_BUCKET_NAME")
+
+	// Create a custom AWS config
+	cfg := aws.Config{
+		Credentials: credentials.NewStaticCredentialsProvider(accessKey, secretKey, ""),
+		Region:      region,
 	}
-	filePath := os.Args[1]
+
+	// Create an S3 client
+	client := s3.NewFromConfig(cfg)
+
+	// Get the last uploaded file
+	lastFile, err := getLastUploadedFile(client, bucketName)
+	if err != nil {
+		log.Fatalf("Failed to find last uploaded file: %v", err)
+	}
+
+	fmt.Printf("Last uploaded file: %s\n", *lastFile.Key)
+
+	// Read the file content
+	FilecsvReader, err := readCSVFromS3(client, bucketName, *lastFile.Key)
+	if err != nil {
+		log.Fatalf("Failed to read CSV from S3: %v", err)
+	}
 
 	// Execute the ProcessTransactions use case
-	log.Printf("Processing transactions from CSV file: %s", filePath)
-	err = processTransactions.Execute(filePath)
+	accountToTransactions, err := processTransactions.Execute(FilecsvReader)
 	if err != nil {
 		log.Fatalf("Could not process transactions: %v", err)
 	}
-	log.Println("Transactions successfully processed")
 
 	// Initialize the GenerateSummary use case
 	generateSummary := usecases.NewGenerateSummary(transactionRepo)
@@ -83,12 +107,55 @@ func main() {
 	// Initialize the Gomail email service
 	emailService := email.NewGomailService(smtpHost, smtpPort, emailUser, emailPassword, fromEmail)
 
+	// ============================================
+
 	// Initialize and execute the SendSummaryEmail use case
 	sendSummaryEmail := usecases.NewSendSummaryEmail(generateSummary, emailService)
-	log.Printf("Sending summary email to: %s", recipientEmail)
-	if err := sendSummaryEmail.Execute(recipientEmail); err != nil {
+
+	if err := sendSummaryEmail.Execute(accountToTransactions); err != nil {
 		log.Fatalf("Could not send summary email: %v", err)
 	}
 
 	log.Println("Summary email sent successfully!")
+}
+
+// getLastUploadedFile fetches the most recently uploaded file in the given bucket path.
+func getLastUploadedFile(client *s3.Client, bucket string) (*types.Object, error) {
+	// List objects in the bucket with the specified prefix
+	output, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket: &bucket,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list objects: %v", err)
+	}
+
+	if len(output.Contents) == 0 {
+		return nil, fmt.Errorf("no files found in bucket path: %s", bucket)
+	}
+
+	// Find the most recently modified object
+	var lastObject *types.Object
+	for _, obj := range output.Contents {
+		if lastObject == nil || obj.LastModified.After(*lastObject.LastModified) {
+			temp := obj
+			lastObject = &temp
+		}
+	}
+
+	return lastObject, nil
+}
+
+// readFileFromS3 reads a file from S3 and returns its content as a string.
+func readCSVFromS3(client *s3.Client, bucket, key string) (*csv.Reader, error) {
+	// Get the object from S3
+	output, err := client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: &bucket,
+		Key:    &key,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object: %v", err)
+	}
+
+	// Return a CSV reader
+	return csv.NewReader(output.Body), nil
 }

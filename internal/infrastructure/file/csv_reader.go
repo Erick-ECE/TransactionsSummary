@@ -3,10 +3,11 @@ package file
 import (
 	"encoding/csv"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 
 	"transactions-summary/internal/entities"
 )
@@ -20,16 +21,8 @@ func NewCSVReader() *CSVReader {
 }
 
 // ReadTransactions reads a CSV file and returns a list of transactions.
-func (r *CSVReader) ReadTransactions(filePath string) ([]entities.Transaction, error) {
-	// Open the CSV file
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("could not open file: %v", err)
-	}
-	defer file.Close()
+func (r *CSVReader) ReadTransactions(reader *csv.Reader) ([]entities.Transaction, error) {
 
-	// Read the CSV file
-	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, fmt.Errorf("could not read CSV: %v", err)
@@ -43,19 +36,21 @@ func (r *CSVReader) ReadTransactions(filePath string) ([]entities.Transaction, e
 			continue // Skip header
 		}
 
-		// Example CSV structure: Id,Date,Transaction
-		// record[0] -> Id, record[1] -> Date (MM/DD), record[2] -> Transaction Amount (signed)
+		// Example CSV structure: Id,Date,Transaction,AccountId
+
+		// Parse AccountId (last column)
+		accountId := strings.TrimSpace(record[2])
 
 		// Parse the transaction amount
-		amount, err := strconv.ParseFloat(record[2], 64)
+		amount, err := strconv.ParseFloat(record[1], 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid transaction amount in CSV: %v", err)
 		}
 
 		// Parse the date (assuming the current year)
-		monthDay := strings.Split(record[1], "/")
+		monthDay := strings.Split(record[0], "/")
 		if len(monthDay) != 2 {
-			return nil, fmt.Errorf("invalid date format in CSV: %s", record[1])
+			return nil, fmt.Errorf("invalid date format in CSV: %s", record[0])
 		}
 		month, _ := strconv.Atoi(monthDay[0])
 		day, _ := strconv.Atoi(monthDay[1])
@@ -64,15 +59,19 @@ func (r *CSVReader) ReadTransactions(filePath string) ([]entities.Transaction, e
 		year := time.Now().Year()
 		date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 
-		// Create a transaction object
-		txn := entities.Transaction{
-			ID:     record[0],
-			Amount: amount,
-			Date:   date,
-			Type:   determineTransactionType(amount), // Determine type based on the sign of the amount
-		}
+		// Determine transaction type using the function
+		transactionType := determineTransactionType(amount)
 
-		transactions = append(transactions, txn)
+		newUUID := uuid.New()
+		// Create a transaction object
+		transaction := entities.Transaction{
+			ID:              newUUID.String(),
+			AccountID:       accountId,
+			Amount:          amount,
+			TransactionDate: date,
+			Type:            transactionType,
+		}
+		transactions = append(transactions, transaction)
 	}
 
 	return transactions, nil

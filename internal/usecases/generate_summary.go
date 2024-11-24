@@ -20,24 +20,17 @@ func NewGenerateSummary(repo interfaces.TransactionRepository) *GenerateSummary 
 }
 
 // Execute calculates the summary from all transactions in the database.
-func (uc *GenerateSummary) Execute() (*entities.SummaryResult, error) {
-	// Retrieve all transactions from the repository
-	transactions, err := uc.TransactionRepo.GetAllTransactions()
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve transactions: %v", err)
-	}
-
+func (uc *GenerateSummary) Execute(accountId string, transactions []entities.Transaction) (*entities.SummaryResult, string, error) {
 	// Calculate summary data
-	totalBalance := 0.0
+	totalCredit := 0.0
+	totalDebit := 0.0
 	monthlyData := make(map[string]*entities.MonthlySummary)
 
 	// Process each transaction
 	for _, transaction := range transactions {
-		// Update the total balance
-		totalBalance += transaction.Amount
 
 		// Get month name (e.g., "July")
-		monthName := transaction.Date.Format("January")
+		monthName := transaction.TransactionDate.Format("January")
 
 		// Initialize monthly summary if not present
 		if _, exists := monthlyData[monthName]; !exists {
@@ -51,8 +44,10 @@ func (uc *GenerateSummary) Execute() (*entities.SummaryResult, error) {
 		monthlySummary.NumTransactions++
 
 		if transaction.Type == "credit" {
+			totalCredit += transaction.Amount
 			monthlySummary.TotalCredits += transaction.Amount
 		} else if transaction.Type == "debit" {
+			totalDebit += transaction.Amount
 			monthlySummary.TotalDebits += transaction.Amount
 		}
 	}
@@ -75,17 +70,23 @@ func (uc *GenerateSummary) Execute() (*entities.SummaryResult, error) {
 		monthlySummaries = append(monthlySummaries, *summary)
 	}
 
+	account, err := uc.TransactionRepo.GetAccount(accountId)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not retrieve account %s: %v", accountId, err)
+	}
+
 	return &entities.SummaryResult{
-		TotalBalance:     totalBalance,
+		TotalCredit:      totalCredit,
+		TotalDebit:       totalDebit,
 		MonthlySummaries: monthlySummaries,
-	}, nil
+	}, account.Email, nil
 }
 
 // Helper functions for counting transactions by type
 func countCredits(transactions []entities.Transaction, month string) int {
 	count := 0
 	for _, transaction := range transactions {
-		if transaction.Date.Format("January") == month && transaction.Type == "credit" {
+		if transaction.TransactionDate.Format("January") == month && transaction.Type == "credit" {
 			count++
 		}
 	}
@@ -95,7 +96,7 @@ func countCredits(transactions []entities.Transaction, month string) int {
 func countDebits(transactions []entities.Transaction, month string) int {
 	count := 0
 	for _, transaction := range transactions {
-		if transaction.Date.Format("January") == month && transaction.Type == "debit" {
+		if transaction.TransactionDate.Format("January") == month && transaction.Type == "debit" {
 			count++
 		}
 	}
