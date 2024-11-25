@@ -40,7 +40,7 @@ go run generate_presigned_url.go transactions.csv
 ```
 3. Use the generated URL with curl:
 ```bash
-curl --upload-file transactions.csv ""
+curl --upload-file transactions.csv "<generated-URL>"
 ```
 
 ### CSV File Format
