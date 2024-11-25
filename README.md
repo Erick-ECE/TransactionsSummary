@@ -5,6 +5,8 @@ Stori technical challenge.
 system that processes a file from a mounted directory and send summary information to a user in the form of an email.
 
 ### Database
+
+```mermaid
 erDiagram
     ACCOUNTS ||--o{ TRANSACTIONS : has
     ACCOUNTS {
@@ -20,3 +22,4 @@ erDiagram
         date transaction_date
         enum type
     }
+```
