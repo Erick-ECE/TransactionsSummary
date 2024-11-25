@@ -75,14 +75,23 @@ Date,Transaction,AccountId
 After processing, the system automatically sends a summary email to the registered email address for each account, containing transaction summary and monthly breakdown.
 
 ## Database
-+----------------+            +------------------+
-|   accounts     |            |   transactions    |
-+----------------+            +------------------+
-| id (PK)        |<-----------| id (PK)           |
-| debit_balance  |            | account_id (FK)   |
-| credit_balance |            | amount            |
-| email          |            | transaction_date  |
-+----------------+            | type              |
-                              +------------------+
+
+```mermaid
+erDiagram
+    ACCOUNTS ||--o{ TRANSACTIONS : has
+    ACCOUNTS {
+        varchar(255) id PK
+        float debit_balance
+        float credit_balance
+        varchar(255) email
+    }
+    TRANSACTIONS {
+        varchar(255) id PK
+        varchar(255) account_id FK
+        float amount
+        date transaction_date
+        enum type
+    }
+```
 
 
