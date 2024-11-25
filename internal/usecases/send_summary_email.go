@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -30,6 +31,7 @@ func (uc *SendSummaryEmail) Execute(accountToTransactions map[string][]entities.
 		summaryResult, toEmail, err := uc.GenerateSummaryUseCase.Execute(account, transactions)
 
 		if err != nil {
+			log.Printf("Could not generate summary for account %s: %v", account, err)
 			return fmt.Errorf("could not generate summary: %v", err)
 		}
 
@@ -39,6 +41,7 @@ func (uc *SendSummaryEmail) Execute(accountToTransactions map[string][]entities.
 		// Send the email
 		subject := "Monthly Transactions Summary"
 		if err := uc.EmailSender.SendEmail(toEmail, subject, emailBody); err != nil {
+			log.Printf("Could not send summary email to %s: %v", toEmail, err)
 			return fmt.Errorf("could not send summary email: %v", err)
 		}
 	}

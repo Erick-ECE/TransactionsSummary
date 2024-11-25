@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	"transactions-summary/internal/entities"
@@ -31,8 +32,10 @@ func (repo *MySQLTransactionRepo) SaveTransaction(transaction entities.Transacti
 		transaction.ID, transaction.AccountID, transaction.Amount, transaction.TransactionDate, transaction.Type,
 	)
 	if err != nil {
+		log.Printf("Error saving transaction %s: %v", transaction.ID, err)
 		return fmt.Errorf("could not save transaction: %v", err)
 	}
+	log.Printf("Transaction %s saved successfully", transaction.ID)
 	return nil
 }
 
@@ -48,8 +51,10 @@ func (repo *MySQLTransactionRepo) GetTransaction(transactionID string) (*entitie
 	err := repo.DB.QueryRow(query, transactionID).Scan(&transaction.ID, &transaction.AccountID, &transaction.Amount, &dateString, &transaction.Type)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Printf("Transaction with ID %s not found", transactionID)
 			return nil, fmt.Errorf("transaction with id %s not found", transactionID)
 		}
+		log.Printf("Error retrieving transaction %s: %v", transactionID, err)
 		return nil, fmt.Errorf("could not retrieve account: %v", err)
 	}
 
@@ -73,11 +78,14 @@ func (repo *MySQLTransactionRepo) GetAccount(id string) (*entities.Account, erro
 	err := repo.DB.QueryRow(query, id).Scan(&account.ID, &account.DebitBalance, &account.CreditBalance, &account.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Printf("Account with ID %s not found", id)
 			return nil, fmt.Errorf("account with id %s not found", id)
 		}
+		log.Printf("Error retrieving account %s: %v", id, err)
 		return nil, fmt.Errorf("could not retrieve account: %v", err)
 	}
 
+	log.Printf("Account %s retrieved successfully", id)
 	return account, nil
 }
 
@@ -87,7 +95,9 @@ func (repo *MySQLTransactionRepo) UpdateAccount(account *entities.Account) error
 		"UPDATE accounts SET debit_balance = ?, credit_balance = ? WHERE id = ?", account.DebitBalance, account.CreditBalance, account.ID,
 	)
 	if err != nil {
+		log.Printf("Error updating account %s: %v", account.ID, err)
 		return fmt.Errorf("could not save transaction: %v", err)
 	}
+	log.Printf("Account %s updated successfully", account.ID)
 	return nil
 }

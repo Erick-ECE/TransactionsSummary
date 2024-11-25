@@ -2,6 +2,7 @@ package email
 
 import (
 	"fmt"
+	"log"
 
 	"gopkg.in/gomail.v2"
 )
@@ -36,7 +37,9 @@ func (s *GomailService) SendEmail(to string, subject string, body string) error 
 
 	dialer := gomail.NewDialer(s.SMTPHost, s.SMTPPort, s.Username, s.Password)
 	if err := dialer.DialAndSend(message); err != nil {
+		log.Printf("Could not send email to %s: %v", to, err)
 		return fmt.Errorf("could not send email: %v", err)
 	}
+	log.Printf("Email sent successfully to %s", to)
 	return nil
 }

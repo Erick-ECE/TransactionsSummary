@@ -3,6 +3,7 @@ package file
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -25,8 +26,10 @@ func (r *CSVReader) ReadTransactions(reader *csv.Reader) ([]entities.Transaction
 
 	records, err := reader.ReadAll()
 	if err != nil {
+		log.Printf("Error reading CSV: %v", err)
 		return nil, fmt.Errorf("could not read CSV: %v", err)
 	}
+	log.Printf("CSV file contains %d records", len(records)-1) // Minus header row
 
 	var transactions []entities.Transaction
 

@@ -3,6 +3,7 @@ package usecases
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 
 	"transactions-summary/internal/entities"
 	"transactions-summary/internal/interfaces"
@@ -27,8 +28,11 @@ func (uc *ProcessTransactions) Execute(reader *csv.Reader) (map[string][]entitie
 	// Read the transactions from the file
 	transactions, err := uc.FileReader.ReadTransactions(reader)
 	if err != nil {
+		log.Printf("Could not read transactions: %v", err)
 		return nil, fmt.Errorf("could not read transactions: %v", err)
 	}
+
+	log.Printf("Read %d transactions from CSV file", len(transactions))
 
 	var filteredTransaction []entities.Transaction
 
