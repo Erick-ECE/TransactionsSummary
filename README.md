@@ -8,7 +8,8 @@ This project provides an automated pipeline for processing financial transaction
 1. Users upload CSV files containing transaction data to AWS S3 using pre-signed URLs
 2. A Lambda function is triggered upon file upload to process the transactions
 3. Transaction data is stored in a MySQL database (RDS)
-4. Summary reports are automatically generated and emailed to account holders
+4. Account and user information is also stored in the DB
+5. Summary reports are automatically generated and emailed to account holders
 
 
 ## Prerequisites
@@ -18,6 +19,17 @@ This project provides an automated pipeline for processing financial transaction
   - Go programming environment
   - AWS CLI configured with appropriate permissions
   - Access to AWS services (S3, Lambda, RDS)
+  -
+- **IMPORTANT NOTE: to change the email destination or add more accounts it must be Updated DB, please contact me to Do the update required**
+Current account registers:
+
+| id | debit_balance | credit_balance | email |
+|----|---------------|----------------|-------|
+| 1  | 0             | 0              | enricken15@ciencias.unam.mx |
+| 2  | 0             | 0              | enricken15@ciencias.unam.mx |
+| 3  | 0             | 0              | enricken15@hotmail.com |
+| 4  | 0             | 0              | javier.hernandez@storicard.com |
+
 
 ## Usage
 
@@ -73,3 +85,22 @@ After processing, the system automatically sends a summary email to the register
 
 ![Email](output/email.png)
 
+## Database
+
+```mermaid
+erDiagram
+    ACCOUNTS ||--o{ TRANSACTIONS : has
+    ACCOUNTS {
+        varchar(255) id PK
+        float debit_balance
+        float credit_balance
+        varchar(255) email
+    }
+    TRANSACTIONS {
+        varchar(255) id PK
+        varchar(255) account_id FK
+        float amount
+        date transaction_date
+        enum type
+    }
+```
