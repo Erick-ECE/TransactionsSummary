@@ -22,6 +22,7 @@ This project provides an automated pipeline for processing financial transaction
   -
 - **IMPORTANT NOTE: to change the email destination or add more accounts it must be Updated DB, please contact me to Do the update required**
 Current account registers:
+
 | id | debit_balance | credit_balance | email |
 |----|---------------|----------------|-------|
 | 1  | 0             | 0              | enriken15@dens.unam.mx |
