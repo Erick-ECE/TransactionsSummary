@@ -23,3 +23,10 @@ erDiagram
         enum type
     }
 ```
+
+| id | debit_balance | credit_balance | email |
+|----|---------------|----------------|-------|
+| 1  | 0             | 0              | enriken15@dens.unam.mx |
+| 2  | 0             | 0              | enriken15@dens.unam.mx |
+| 3  | 0             | 0              | enriken15@hotmail.com |
+| 4  | NULL          | NULL           | javier.hernandez@esteban.com |
