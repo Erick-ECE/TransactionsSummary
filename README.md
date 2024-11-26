@@ -25,9 +25,9 @@ Current account registers:
 
 | id | debit_balance | credit_balance | email |
 |----|---------------|----------------|-------|
-| 1  | 0             | 0              | enriken15@dens.unam.mx |
-| 2  | 0             | 0              | enriken15@dens.unam.mx |
-| 3  | 0             | 0              | enriken15@hotmail.com |
+| 1  | 0             | 0              | enricken15@ciencias.unam.mx |
+| 2  | 0             | 0              | enricken15@ciencias.unam.mx |
+| 3  | 0             | 0              | enricken15@hotmail.com |
 | 4  | 0             | 0              | javier.hernandez@storicard.com |
 
 
