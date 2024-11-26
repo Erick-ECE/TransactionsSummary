@@ -70,3 +70,6 @@ Date,Transaction,AccountId
 ## Output
 
 After processing, the system automatically sends a summary email to the registered email address for each account, containing transaction summary and monthly breakdown.
+
+![Email](output/email.png)
+
