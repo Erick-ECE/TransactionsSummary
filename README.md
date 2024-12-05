@@ -38,7 +38,7 @@ Current account registers:
 You can directly upload your CSV file using this pre-generated URL:
 
 ```bash
-curl --upload-file transactions.csv "https://transactions-demo.s3.us-east-2.amazonaws.com/transactions.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQXPZDEK6GV3NILUK%2F20241125%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20241125T061704Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&x-id=PutObject&X-Amz-Signature=0233eb612643838661b2cdff527cde95967d4ab1e4082b9bb77be9b2865ff7e9"
+curl --upload-file transactions.csv "https://transactions-demo.s3.us-east-2.amazonaws.com/transactions.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQXPZDEK6GV3NILUK%2F20241205%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20241205T233932Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&x-id=PutObject&X-Amz-Signature=609265e250fccf96edcdd3f9c8c28f1a1590cd3928e7a50463c8b926bf03dc10"
 ```
 
 ### Option 2: Generate New Pre-signed URL (Requires AWS Permissions)
